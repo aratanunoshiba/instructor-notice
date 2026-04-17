@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>理科実験 カリキュラム一覧</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --text: #1c1b18;
+      --text-sub: #6b6a65;
+      --text-hint: #a09f9a;
+      --border: #e0dfd8;
+      --elem-accent: #1a6b3c;
+      --elem-light: #e8f5ee;
+      --elem-mid: #a8d4b8;
+      --mid-accent: #1d4e89;
+      --mid-light: #e6eef8;
+      --mid-mid: #a0bce0;
+      --chem: #8b3a3a;
+      --chem-bg: #fdf0f0;
+      --bio: #3a6b3a;
+      --bio-bg: #f0f5f0;
+      --phys: #3a4e8b;
+      --phys-bg: #f0f3fc;
+      --radius: 6px;
+      --font: 'Noto Sans JP', sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2.5rem 1rem 4rem;
+    }
+
+    /* ページヘッダー */
+    .page-header {
+      max-width: 1200px;
+      margin: 0 auto 2.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      border-bottom: 2px solid var(--text);
+      padding-bottom: 1rem;
+    }
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* タブ */
+    .tabs {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      gap: 4px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .tab-btn {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1.5px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active-elem { color: var(--elem-accent); border-bottom-color: var(--elem-accent); }
+    .tab-btn.active-mid  { color: var(--mid-accent);  border-bottom-color: var(--mid-accent); }
+
+    /* パネル */
+    .panel { display: none; max-width: 1200px; margin: 0 auto; }
+    .panel.active { display: block; }
+
+    /* セクションヘッダー */
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .section-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .badge-elem { background: var(--elem-light); color: var(--elem-accent); }
+    .badge-mid  { background: var(--mid-light);  color: var(--mid-accent); }
+    .section-note { font-size: 12px; color: var(--text-hint); }
+
+    /* ===== 小学部テーブル ===== */
+    .elem-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    table.elem-table {
+      border-collapse: collapse;
+      min-width: 900px;
+      width: 100%;
+      font-size: 12px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    table.elem-table th {
+      background: var(--elem-accent);
+      color: #fff;
+      font-weight: 500;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    table.elem-table th.grade-head {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    table.elem-table td {
+      border: 1px solid var(--border);
+      padding: 0;
+      vertical-align: top;
+    }
+    table.elem-table td.num-cell {
+      text-align: center;
+      color: var(--text-hint);
+      font-size: 11px;
+      padding: 6px 4px;
+      background: #fafaf8;
+      width: 30px;
+    }
+    table.elem-table td.term-cell {
+      text-align: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--elem-accent);
+      background: var(--elem-light);
+      width: 24px;
+      vertical-align: middle;
+    }
+
+    .exp-link {
+      display: block;
+      padding: 6px 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12px;
+      line-height: 1.4;
+      transition: background 0.1s;
+      min-height: 36px;
+    }
+    .exp-link:hover { background: var(--elem-light); color: var(--elem-accent); }
+    .exp-link.empty { color: var(--text-hint); font-size: 11px; pointer-events: none; }
+
+    /* 学期区切りの太線 */
+    tr.term-divider td { border-top: 2px solid var(--elem-mid); }
+
+    /* ===== 中学部テーブル ===== */
+    table.mid-table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    table.mid-table th {
+      background: var(--mid-accent);
+      color: #fff;
+      font-weight: 500;
+      padding: 10px 14px;
+      font-size: 13px;
+      text-align: left;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    table.mid-table th.center { text-align: center; }
+    table.mid-table td {
+      border: 1px solid var(--border);
+      padding: 0;
+      vertical-align: middle;
+    }
+    table.mid-table td.num-cell {
+      text-align: center;
+      color: var(--text-hint);
+      font-size: 12px;
+      padding: 0 8px;
+      background: #fafaf8;
+      width: 40px;
+    }
+    table.mid-table .mid-exp-link {
+      display: block;
+      padding: 9px 12px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      transition: background 0.1s;
+    }
+    table.mid-table .mid-exp-link:hover { background: var(--mid-light); color: var(--mid-accent); }
+    table.mid-table .mid-exp-link.empty { color: var(--text-hint); pointer-events: none; }
+
+    .subject-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .s-chem  { background: var(--chem-bg); color: var(--chem); }
+    .s-bio   { background: var(--bio-bg);  color: var(--bio); }
+    .s-phys  { background: var(--phys-bg); color: var(--phys); }
+    .s-free  { background: #f5f5f0; color: var(--text-hint); }
+
+    tr.term-divider-mid td { border-top: 2px solid var(--mid-mid); }
+
+    /* 凡例 */
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .legend-label { font-size: 11px; color: var(--text-sub); }
+    .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+
+    /* 注釈 */
+    .footnote {
+      margin-top: 1rem;
+      font-size: 11px;
+      color: var(--text-hint);
+    }
+
+    @media (max-width: 700px) {
+      .page-title { font-size: 18px; }
+      .tab-btn { padding: 8px 12px; font-size: 13px; }
+      table.mid-table { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="curriculum-wrap">
+
+<header class="page-header">
+  <h1 class="page-title">理科実験 カリキュラム一覧</h1>
+  <span class="page-subtitle">各実験の注意事項ページへのリンク集</span>
+</header>
+
+<!-- タブ -->
+<div class="tabs">
+  <button class="tab-btn active-elem" onclick="switchTab('elem', this)">小学部（通常コース）</button>
+  <button class="tab-btn" onclick="switchTab('mid', this)">中学部（通常/集中コース）</button>
+</div>
+
+<!-- ===================== 小学部パネル ===================== -->
+<div id="panel-elem" class="panel active">
+  <div class="section-head">
+    <span class="section-badge badge-elem">小学部</span>
+    <span class="section-note">実験名をクリックすると各実験の注意事項ページへ移動します</span>
+  </div>
+
+  <div class="elem-scroll">
+  <table class="elem-table">
+    <thead>
+      <tr>
+        <th colspan="2">学期/番</th>
+        <th class="grade-head">小学1年</th>
+        <th class="grade-head">小学2年</th>
+        <th class="grade-head">小学3年</th>
+        <th class="grade-head">小学4年</th>
+        <th class="grade-head">小学5年</th>
+        <th class="grade-head">小学6年</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 1学期 -->
+      <tr class="term-divider">
+        <td class="term-cell" rowspan="13">1</td>
+        <td class="num-cell">1</td>
+        <td><a class="exp-link" href="/experiments/e1-1-1">シャボン玉1</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-1">シャボン玉1</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-1">シャボン玉1</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-1">シャボン玉1</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-1">シャボン玉1</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-1">シャボン玉1</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">2</td>
+        <td><a class="exp-link" href="/experiments/e1-1-2">シャボン玉2</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-2">シャボン玉2</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-2">シャボン玉2</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-2">シャボン玉2</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-2">シャボン玉2</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-2">シャボン玉2</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">3</td>
+        <td><a class="exp-link" href="/experiments/e1-1-3">シャボン玉の色模様・UFO玉</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-3">塩と砂糖</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-3">基本操作</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-3">アルコール</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-3">酸素の作り方</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-3">液性調べ1</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">4</td>
+        <td><a class="exp-link" href="/experiments/e1-1-4">ペーパークロマトグラフィー</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-4">溶けやすさの違い</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-4">倍率の変え方</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-4">ナフタレン</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-4">酸素の性質</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-4">液性調べ2</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">5</td>
+        <td><a class="exp-link" href="/experiments/e1-1-5">プリズム</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-5">デンプン</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-5">倍率と見え方</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-5">塩</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-5">金属の酸化</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-5">pH(ピーエイチ)1</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">6</td>
+        <td><a class="exp-link" href="/experiments/e1-1-6">分光器づくり</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-6">指示薬</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-6">プランクトン1</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-6">水の三態変化</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-6">金属のさび</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-6">pH(ピーエイチ)2</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">7</td>
+        <td><a class="exp-link" href="/experiments/e1-1-7">色ゴマづくり</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-7">ろ過</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-7">プランクトン2</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-7">水の温度上昇調べ</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-7">窒素</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-7">希釈</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">8</td>
+        <td><a class="exp-link" href="/experiments/e1-1-8">紫キャベツの汁作り</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-8">塩水・さとう水</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-8">半永久プレパラート</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-8">蒸留</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-8">二酸化炭素</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-8">中和</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">9</td>
+        <td><a class="exp-link" href="/experiments/e1-1-9">すっぱい酸</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-9">べっこうあめ作り</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-9">気温</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-9">水蒸気と湿度</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-9">呼吸</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-9">発熱反応</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">10</td>
+        <td><a class="exp-link" href="/experiments/e1-1-10">にがいアルカリ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-10">反射</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-10">雲・竜巻のでき方</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-10">わたがし作り</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-10">気体の重さくらべ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-10">酸・アルカリと金属</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">11</td>
+        <td><a class="exp-link" href="/experiments/e1-1-11">中性</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-11">反射の法則と屈折</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-11">風向計作り</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-11">ドライアイス鉄砲</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-11">ドライアイス実験</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-11">気体の発生</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">12</td>
+        <td><a class="exp-link" href="/experiments/e1-1-12">花と果物</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-12">おばけろうそく・合わせ鏡</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-12">うず輪</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-12">アイスキャンディ作り</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-12">サイダー作り</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-12">水素ロケット</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">13</td>
+        <td><a class="exp-link" href="/experiments/e1-1-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-1-13">万華鏡作り</a></td>
+        <td><a class="exp-link" href="/experiments/e3-1-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e4-1-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e5-1-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-1-13">おたのしみ</a></td>
+      </tr>
+
+      <!-- 2学期 -->
+      <tr class="term-divider">
+        <td class="term-cell" rowspan="13">2</td>
+        <td class="num-cell">1</td>
+        <td><a class="exp-link" href="/experiments/e1-2-1">1円玉浮かし</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-1">豆電球をつけよう</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-1">空気と水のひっこし</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-1">ポンポン船作り1</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-1">屈折</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-1">わりばしの乾留</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">2</td>
+        <td><a class="exp-link" href="/experiments/e1-2-2">水のまくを見よう</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-2">豆電球のしくみ</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-2">空気と真空</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-2">ポンポン船作り2</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-2">レンズで集めた光</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-2">石炭の乾留</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">3</td>
+        <td><a class="exp-link" href="/experiments/e1-2-3">すみ流し</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-3">色々な線とショート</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-3">空気を温める1</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-3">温度計の原理</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-3">レンズと焦点</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-3">ろうそくの炎</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">4</td>
+        <td><a class="exp-link" href="/experiments/e1-2-4">歯磨き粉船</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-4">色々な電池と電球</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-4">空気を温める2</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-4">水</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-4">簡易カメラ作り</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-4">炎色反応</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">5</td>
+        <td><a class="exp-link" href="/experiments/e1-2-5">お湯と水の重さ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-5">電池の直列・並列</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-5">ポリ袋の熱気球</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-5">空気</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-5">映写機作り</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-5">花火づくり1</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">6</td>
+        <td><a class="exp-link" href="/experiments/e1-2-6">水のエレベーター</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-6">電球の直列・並列</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-6">空気圧</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-6">金属</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-6">飽和</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-6">花火づくり2</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">7</td>
+        <td><a class="exp-link" href="/experiments/e1-2-7">コップの中の空気</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-7">モーターカー作り1</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-7">一斗缶つぶし</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-7">ポルタ電池</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-7">溶け方くらべ1</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-7">水炎放射・火の玉作り</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">8</td>
+        <td><a class="exp-link" href="/experiments/e1-2-8">シャボン玉ロケット</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-8">モーターカー作り2</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-8">永久噴水</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-8">ルクランシェ電池</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-8">溶け方くらべ2</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-8">電流と磁界</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">9</td>
+        <td><a class="exp-link" href="/experiments/e1-2-9">空気と風船</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-9">回路図</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-9">音とふるえ</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-9">乾電池の分解</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-9">再結晶</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-9">コイルと磁界</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">10</td>
+        <td><a class="exp-link" href="/experiments/e1-2-10">空気のあるところ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-10">切りかえスイッチ</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-10">音と真空</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-10">レモン電池</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-10">溶解度曲線1</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-10">磁界・電流・力</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">11</td>
+        <td><a class="exp-link" href="/experiments/e1-2-11">真空</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-11">信号機づくり1</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-11">音の伝わり方</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-11">果物・野菜電池</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-11">溶解度曲線2</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-11">簡易モーター</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">12</td>
+        <td><a class="exp-link" href="/experiments/e1-2-12">浮沈子</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-12">信号機づくり2</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-12">楽器作り</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-12">人間電池</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-12">ミョウバン大結晶作り</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-12">モーターの分解</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">13</td>
+        <td><a class="exp-link" href="/experiments/e1-2-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-2-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e3-2-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e4-2-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e5-2-13">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-2-13">おたのしみ</a></td>
+      </tr>
+
+      <!-- 3学期 -->
+      <tr class="term-divider">
+        <td class="term-cell" rowspan="10">3</td>
+        <td class="num-cell">1</td>
+        <td><a class="exp-link" href="/experiments/e1-3-1">風船と静電気</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-1">N極とS極</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-1">せっけん作り1</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-1">デンプンを含むものを調べ</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-1">てこと天秤</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-1">電流・電圧・電力</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">2</td>
+        <td><a class="exp-link" href="/experiments/e1-3-2">風船と空気力1</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-2">方位磁針</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-2">せっけん作り2</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-2">デンプンをとりだす</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-2">輪軸</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-2">オームの法則</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">3</td>
+        <td><a class="exp-link" href="/experiments/e1-3-3">風船と空気力2</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-3">針金磁石</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-3">せっけん作り3</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-3">デンプンの観察</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-3">モビール作り</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-3">直列・並列</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">4</td>
+        <td><a class="exp-link" href="/experiments/e1-3-4">風船ロケット</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-4">磁力線を見よう</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-4">泡立ちくらべ</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-4">デンプンの特性</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-4">ふりこ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-4">交流電気水溶液</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">5</td>
+        <td><a class="exp-link" href="/experiments/e1-3-5">いろいろな磁石</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-5">ジャガイモと浮力</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-5">せっけんと洗剤</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-5">だとデンプン</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-5">静電気のおこる物</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-5">電気パン焼き器1</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">6</td>
+        <td><a class="exp-link" href="/experiments/e1-3-6">磁石につくものの調べ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-6">塩水と真水</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-6">アルカリ性</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-6">ごはんを炊こう</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-6">帯電の正負調べ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-6">電気パン焼き器2</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">7</td>
+        <td><a class="exp-link" href="/experiments/e1-3-7">磁石の力</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-7">塩の結晶観察</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-7">中性・酸性</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-7">デンプンの大きさ</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-7">はく検電器</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-7">電気パン焼き器3</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">8</td>
+        <td><a class="exp-link" href="/experiments/e1-3-8">磁力船</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-8">硝酸銀で塩分調べ</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-8">乳化</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-8">葉っぱと光合成</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-8">バンデグラフ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-8">おたのしみ1</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">9</td>
+        <td><a class="exp-link" href="/experiments/e1-3-9">砂鉄とり</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-9">蒸留水作り</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-9">炭の粉・汚れ落とし</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-9">オオカナダモの観察</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-9">静電気工作</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-9">おたのしみ2</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">10</td>
+        <td><a class="exp-link" href="/experiments/e1-3-10">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e2-3-10">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e3-3-10">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e4-3-10">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e5-3-10">おたのしみ</a></td>
+        <td><a class="exp-link" href="/experiments/e6-3-10">おたのしみ3</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p class="footnote">※ カリキュラムは一部変更が生じる場合があります。リンク先URLは /experiments/{学年}-{学期}-{番号} の形式です。WordPressのスラッグに合わせて変更してください。</p>
+</div>
+
+<!-- ===================== 中学部パネル ===================== -->
+<div id="panel-mid" class="panel">
+  <div class="section-head">
+    <span class="section-badge badge-mid">中学部</span>
+    <span class="section-note">実験名をクリックすると各実験の注意事項ページへ移動します</span>
+  </div>
+
+  <div class="legend">
+    <span class="legend-label">科目：</span>
+    <span class="legend-item"><span class="subject-badge s-chem">化</span> 化学</span>
+    <span class="legend-item"><span class="subject-badge s-bio">生</span> 生物</span>
+    <span class="legend-item"><span class="subject-badge s-phys">物</span> 物理</span>
+    <span class="legend-item"><span class="subject-badge s-free">—</span> 自由実験</span>
+  </div>
+
+  <table class="mid-table">
+    <thead>
+      <tr>
+        <th class="center" style="width:50px">年番</th>
+        <th class="center" style="width:50px">期番</th>
+        <th>中学1年</th>
+        <th>中学2年</th>
+        <th>中学3年</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="term-divider-mid">
+        <td class="num-cell">1</td><td class="num-cell">1</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-1">シャボン玉（分子間力）<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-1">酵素の働きと性質（カタラーゼ）<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-1">イオン化傾向<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">2</td><td class="num-cell">2</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-2">エタノールの分留<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-2">水飴作り（酵素の利用）<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-2">陽イオンの沈殿反応<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">3</td><td class="num-cell">3</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-3">竹炭フィラメント<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-3">玉ねぎの細胞観察<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-3">立体周期表<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">4</td><td class="num-cell">4</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-4">アンモニアの生成と性質<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-4">細胞の原形質分離<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-4">ケイ素の科学<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">5</td><td class="num-cell">5</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-5">光合成（気泡計数法）<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-5">DNAの抽出<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-5">象の歯磨き粉<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">6</td><td class="num-cell">6</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-6">光合成色素の抽出<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-6">硫黄の同素体<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-6">タンパク質の変性<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">7</td><td class="num-cell">7</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-7">低温沸騰<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-7">イースト菌の働き（発酵）<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-7">銀鏡反応<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">8</td><td class="num-cell">8</td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+      </tr>
+      <tr class="term-divider-mid">
+        <td class="num-cell">9</td><td class="num-cell">1</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-9">光ファイバーの原理<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-9">コイルと電磁誘導<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-9">紫外線の科学<span class="subject-badge s-phys">物</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">10</td><td class="num-cell">2</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-10">乳化<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-10">スピーカーの原理<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-10">放射線の科学<span class="subject-badge s-phys">物</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">11</td><td class="num-cell">3</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-11">コロイド溶液の性質1<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-11">発電機づくり<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-11">石灰の科学変化<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">12</td><td class="num-cell">4</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-12">コロイド溶液の性質2<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-12">交流電流の確認<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-12">テルミット反応<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">13</td><td class="num-cell">5</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-13">豆腐作り<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-13">電気回路工作Ⅱ①トランスの仕組み<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-13">過飽和・過冷却<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">14</td><td class="num-cell">6</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-14">発泡スチロールのリサイクル<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-14">電気回路工作Ⅱ②蛍光灯ライト工作<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-14">時計反応<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">15</td><td class="num-cell">7</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-15">電気回路工作①ブレッドボードで回路作り<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-15">角の解剖<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-15">流体力学<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">16</td><td class="num-cell">8</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-16">電気回路工作②トランジスタ・DS セル<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-16">磁性<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-16">銅アンモニアレーヨン<span class="subject-badge s-chem">化</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">17</td><td class="num-cell">9</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-17">電気回路工作③はんだを使った工作<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-17">目の科学<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m3-17">Arduinoによる音速測定<span class="subject-badge s-phys">物</span></a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">18</td><td class="num-cell">10</td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+      </tr>
+      <tr class="term-divider-mid">
+        <td class="num-cell">19</td><td class="num-cell">1</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-19">酸化・還元<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-19">鶏の心臓の解剖<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link empty" href="#">—</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">20</td><td class="num-cell">2</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-20">金属めっき<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-20">鶏の脳の解剖<span class="subject-badge s-bio">生</span></a></td>
+        <td><a class="mid-exp-link empty" href="#">—</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">21</td><td class="num-cell">3</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-21">塩化銅水溶液の電気分解<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-21">Arduinoによる電子回路①<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link empty" href="#">—</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">22</td><td class="num-cell">4</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-22">酸化銀・塩化銀の分解<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-22">Arduinoによる電子回路②<span class="subject-badge s-phys">物</span></a></td>
+        <td><a class="mid-exp-link empty" href="#">—</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">23</td><td class="num-cell">5</td>
+        <td><a class="mid-exp-link" href="/experiments/m1-23">卵の科学<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link" href="/experiments/m2-23">アミロース・アミロペクチン<span class="subject-badge s-chem">化</span></a></td>
+        <td><a class="mid-exp-link empty" href="#">—</a></td>
+      </tr>
+      <tr>
+        <td class="num-cell">24</td><td class="num-cell">6</td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+        <td><a class="mid-exp-link empty" href="#">自由実験</a></td>
+        <td><a class="mid-exp-link empty" href="#">—</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="footnote">※ カリキュラムは一部順番の入れ替え・変更になることがあります。リンク先URLは /experiments/m{学年}-{年番} の形式です。WordPressのスラッグに合わせて変更してください。</p>
+</div>
+
+<script>
+  function switchTab(target, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.className = 'tab-btn');
+    document.getElementById('panel-' + target).classList.add('active');
+    btn.classList.add('active-' + target);
+  }
+</script>
+
+</div><!-- /.curriculum-wrap -->
+</body>
+</html>
